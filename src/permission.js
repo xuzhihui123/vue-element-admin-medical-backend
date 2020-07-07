@@ -17,26 +17,37 @@ router.beforeEach(async(to, from, next) => {
   // set page title
   document.title = getPageTitle(to.meta.title)
 
-  // determine whether the user has logged in
+  // 这边的token 是从cookie里面拿的
   const hasToken = getToken()
 
+
+  //先判断有无token  没有token只能跳登录页
   if (hasToken) {
     if (to.path === '/login') {
       // if is logged in, redirect to the home page
       next({ path: '/' })
-      NProgress.done()
+      NProgress.done() // hack: https://github.com/PanJiaChen/vue-element-admin/pull/2939
     } else {
-      const hasGetUserInfo = store.getters.name
-      if (hasGetUserInfo) {
+      //有token  判断有roles权限
+      const hasRoles = store.getters.roles && store.getters.roles.length>0
+      // 权限有就直接跳过
+      if (hasRoles) {
         next()
       } else {
         try {
-          // get user info
-          await store.dispatch('user/getInfo')
+          //没有就发送请求拿到roles  渲染左侧权限菜单
+          const datas = await store.dispatch('user/getInfo')
 
-          next()
+          const accessRoutes = await store.dispatch('permission/generateRoutes', datas)
+          //必须设置下面这行这个才能动态路由
+          router.options.routes = store.getters.routes
+          // dynamically add accessible routes  要添加后面的404 并把constantRoutes的404跳转去掉
+          router.addRoutes([...accessRoutes,{path:'*',redirect:'/404',hidden:true}])
+          // hack method to ensure that addRoutes is complete
+          // set the replace: true, so the navigation will not leave a history record
+          next({ ...to, replace: true })
         } catch (error) {
-          // remove token and go to login page to re-login
+          // token过期或者token不存在了 直接跳到登录页
           await store.dispatch('user/resetToken')
           Message.error(error || 'Has Error')
           next(`/login?redirect=${to.path}`)
@@ -46,7 +57,7 @@ router.beforeEach(async(to, from, next) => {
     }
   } else {
     /* has no token*/
-
+    //没有token白名单跳登录页
     if (whiteList.indexOf(to.path) !== -1) {
       // in the free login whitelist, go directly
       next()
