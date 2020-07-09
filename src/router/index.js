@@ -60,6 +60,26 @@ export const constantRoutes = [
     ]
   },
 
+  {
+    path:'/hosps',
+    component:Layout,
+    meta:{
+      title:'医院管理'
+    },
+    hidden:true,
+    children:[
+      {
+        path:'edit/:id',
+        component:()=>import("@/views/hospEdit/index"),
+        name:'hospEdit',
+        hidden:true,
+        meta:{
+          title:'编辑医院'
+        }
+      }
+    ]
+  }
+
   // 404 page must be placed at the end !!!
   // { path: '*', redirect: '/404', hidden: true }
 ]

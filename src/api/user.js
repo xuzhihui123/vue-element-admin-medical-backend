@@ -35,3 +35,13 @@ export function getInfo(token) {
     }
   })
 }
+
+
+//用户退出  GET /login/logout
+
+export function logout() {
+  return request({
+    method:'get',
+    url:"/login/logout",
+  })
+}

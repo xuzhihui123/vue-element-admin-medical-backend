@@ -11,7 +11,7 @@
         <el-input v-model="formData.remark"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitAdd" :loading="loading">确认</el-button>
+        <el-button type="primary" @click="submitEdit" :loading="loading">确认</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -19,12 +19,13 @@
 
 <script>
   //导入network
-  import {addHosp} from "@/api/hospitalManage";
+  import {getHospById, updateHosp} from '@/api/hospitalManage'
 
   export default {
     name: "index",
     data() {
       return {
+        hospId: null,
         formData: {
           hospName: '',
           hospAddr: '',
@@ -42,26 +43,36 @@
       }
     },
     methods: {
-      submitAdd() {
+      //获取id
+      getHospId() {
+        this.hospId = this.$route.params.id
+      },
+      //获取信息
+      async getHospInfo() {
+        let d = await getHospById({id: this.hospId})
+        let {hospName, remark, hospAddr} = d.data
+        this.formData.hospName = hospName
+        this.formData.remark = remark
+        this.formData.hospAddr = hospAddr
+      },
+      submitEdit() {
         this.$refs.form.validate(async r => {
           if (r) {
             let {hospName, hospAddr, remark} = this.formData
             this.loading = true
-            let d = await addHosp({hospName, hospAddr, remark})
+            let d = await updateHosp({hospName, hospAddr, remark,hospId:this.hospId})
             if (d.code === 200) {
               this.$message({
                 type: 'success',
-                message: '添加成功！'
+                message: '编辑成功！'
               })
               this.loading = false
-              for (let key in this.formData) {
-                this.formData[key] = ""
-              }
+              this.$router.go(-1)
             } else {
               this.loading = false
               return this.$message({
                 type: 'error',
-                message: '添加失败！'
+                message: '编辑失败！'
               })
             }
           } else {
@@ -72,6 +83,10 @@
           }
         })
       }
+    },
+    created() {
+      this.getHospId()
+      this.getHospInfo()
     }
   }
 </script>

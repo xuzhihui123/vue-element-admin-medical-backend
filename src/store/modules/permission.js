@@ -97,11 +97,15 @@ const actions = {
       })
 
 
+
       generaMenu(asyncRoutes, routeArr, roles)
+
 
 
       //返回权限路由数组列表
       let accessedRoutes = filterAsyncRoutes(asyncRoutes, roles)
+
+
       //设置路由权限列表
       commit('SET_ROUTES', accessedRoutes)
 

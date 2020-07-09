@@ -39,7 +39,8 @@ router.beforeEach(async(to, from, next) => {
           const datas = await store.dispatch('user/getInfo')
 
           const accessRoutes = await store.dispatch('permission/generateRoutes', datas)
-          //必须设置下面这行这个才能动态路由
+
+          //必须设置下面这行这个才能显示侧边栏动态路由
           router.options.routes = store.getters.routes
           // dynamically add accessible routes  要添加后面的404 并把constantRoutes的404跳转去掉
           router.addRoutes([...accessRoutes,{path:'*',redirect:'/404',hidden:true}])
